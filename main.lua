@@ -1,5 +1,6 @@
 -- main.lua
 local blackjack = require("blackjack")
+local roulette = require("roulette")
 
 local function main()
     print("Welcome to the Casino! What game would you like to play?")
@@ -7,7 +8,7 @@ local function main()
 
     local choice = io.read
     if (choice == 1) then
-    
+        roulette.play()
     elseif (choice == 2) then
     elseif (choice == 3) then
         blackjack.play()        

@@ -183,3 +183,10 @@ local function main()
 end
 
 main()
+
+local roulette = {}
+
+function roulette.play()
+    -- just call your existing main loop
+    main()
+end
