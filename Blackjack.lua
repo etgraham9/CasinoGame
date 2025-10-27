@@ -217,5 +217,13 @@ local function main()
     end
 end
 
--- start
-main()
+local blackjack = {}
+
+-- keep all your existing local helper functions above (build_deck, shuffle, etc.)
+
+function blackjack.play()
+    -- just call your existing main loop
+    main()
+end
+
+return blackjack
