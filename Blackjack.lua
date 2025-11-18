@@ -1,6 +1,7 @@
+
 math.randomseed(os.time())
 
--- build a standard 52-card deck
+-- Build a standard 52-card deck
 local function build_deck()
     local ranks = {"A","2","3","4","5","6","7","8","9","10","J","Q","K"}
     local suits = {"♠","♥","♦","♣"}
@@ -13,7 +14,7 @@ local function build_deck()
     return deck
 end
 
--- Shuffle cards
+-- Fisher-Yates shuffle
 local function shuffle(deck)
     for i = #deck, 2, -1 do
         local j = math.random(1, i)
@@ -25,7 +26,7 @@ local function card_to_string(card)
     return card.rank .. card.suit
 end
 
--- compute hand total, treating A as 1 or 11 optimally
+
 local function hand_value(hand)
     local total = 0
     local aces = 0
@@ -33,14 +34,14 @@ local function hand_value(hand)
         local r = c.rank
         if r == "A" then
             aces = aces + 1
-            total = total + 1 -- count as 1 for now
+            total = total + 1
         elseif r == "J" or r == "Q" or r == "K" then
             total = total + 10
         else
             total = total + tonumber(r)
         end
     end
-    -- try to upgrade some aces from 1 to 11 if it doesn't bust
+
     for i = 1, aces do
         if total + 10 <= 21 then
             total = total + 10
@@ -65,17 +66,16 @@ local function print_hand(prefix, hand, hide_first)
     io.write(prefix .. table.concat(pieces, " ") .. "\n")
 end
 
--- draw a card from deck; reshuffle if deck low
+
 local function draw(deck)
-    if #deck < 15 then
-        -- rebuild and reshuffle when deck low (simple shoe)
+    if #deck < 6 then
         deck = build_deck()
         shuffle(deck)
     end
-    return table.remove(deck), deck
+    return table.remove(deck, 1), deck
 end
 
--- ask for "hit" or "stand"
+
 local function player_choice()
     while true do
         io.write("(H)it or (S)tand? ")
@@ -87,8 +87,8 @@ local function player_choice()
     end
 end
 
--- run a single round
-local function play_round(bank)
+
+local function play_round(bet)
     local deck = build_deck()
     shuffle(deck)
     local player = {}
@@ -103,12 +103,12 @@ local function play_round(bank)
         table.insert(dealer, c)
     end
 
-    print("\n--- New Round ---")
+    print("\n--- New Blackjack Round ---")
     print_hand("Dealer: ", dealer, true)
     print_hand("You:    ", player)
     print("Your total:", hand_value(player))
 
-    -- natural blackjack checks
+
     local playerBJ = is_blackjack(player)
     local dealerBJ = is_blackjack(dealer)
 
@@ -116,27 +116,27 @@ local function play_round(bank)
         print_hand("Dealer: ", dealer, false)
         if playerBJ and dealerBJ then
             print("Both have Blackjack! Push.")
-            return bank, 0 -- no change
+            return 0
         elseif playerBJ then
             print("Blackjack! You win 1.5x your bet.")
-            local profit = math.floor(1.5 * bank.bet + 0.5)
-            return bank, bank.bet + profit -- return bet + profit (net positive)
+            -- Return net profit (1.5 * bet)
+            return math.floor(1.5 * bet + 0.5)
         else
             print("Dealer has Blackjack. You lose.")
-            return bank, -bank.bet
+            return -bet
         end
     end
 
-    -- player turn
     while true do
-        local hv = hand_value(player)
-        if hv > 21 then
+        local val = hand_value(player)
+        if val > 21 then
             print_hand("You:    ", player)
-            print("Bust! You have", hv)
-            return bank, -bank.bet
+            print("Bust! You have", val)
+            return -bet
         end
-        local choice = player_choice()
-        if choice == "h" then
+
+        local ans = player_choice()
+        if ans == "h" then
             local c
             c, deck = draw(deck)
             table.insert(player, c)
@@ -148,7 +148,7 @@ local function play_round(bank)
         end
     end
 
-    -- dealer turn: reveal and hit until 17 or more (soft 17 stands)
+
     print_hand("Dealer: ", dealer, false)
     while hand_value(dealer) < 17 do
         local c
@@ -163,67 +163,46 @@ local function play_round(bank)
 
     if dval > 21 then
         print("Dealer busts! You win.")
-        return bank, bank.bet
+        return bet
     elseif pval > dval then
         print("You win!")
-        return bank, bank.bet
+        return bet
     elseif pval < dval then
         print("You lose.")
-        return bank, -bank.bet
+        return -bet
     else
         print("Push (tie).")
-        return bank, 0
-    end
-end
-
--- manage betting and main loop
-local function main()
-    print("Welcome to Lua Blackjack!")
-    local balance = 100
-    while true do
-        print("\nBalance: $" .. balance)
-        io.write("Enter bet amount (or Q to quit): ")
-        local s = io.read()
-        if not s then return end
-        if s:lower():match("^q") then
-            print("Thanks for playing! Final balance: $" .. balance)
-            return
-        end
-        local bet = tonumber(s)
-        if not bet or bet <= 0 then
-            print("Invalid bet.")
-        elseif bet > balance then
-            print("You don't have enough money.")
-        else
-            -- simple packaging for compatibility with earlier function
-            local bank = { bet = bet }
-            local _, delta = play_round(bank)
-            if delta > 0 then
-                -- if returned positive we assume winner payout already included? simplify:
-                if delta == bank.bet + math.floor(1.5*bank.bet + 0.5) then
-                    -- natural blackjack payout handled above: treat as net profit
-                    balance = balance + math.floor(1.5*bank.bet + 0.5)
-                else
-                    balance = balance + delta
-                end
-            else
-                balance = balance + delta
-            end
-            if balance <= 0 then
-                print("You're out of money! Game over.")
-                return
-            end
-        end
+        return 0
     end
 end
 
 local blackjack = {}
 
--- keep all your existing local helper functions above (build_deck, shuffle, etc.)
 
-function blackjack.play()
-    -- just call your existing main loop
-    main()
+function blackjack.play(balance)
+    print("\n=== BLACKJACK ===")
+    print("Balance: $" .. balance)
+    io.write("Bet amount: ")
+    local b = tonumber(io.read())
+
+    if not b or b <= 0 or b > balance then
+        print("Invalid bet.")
+        return balance
+    end
+
+    local delta = play_round(b)
+    balance = balance + delta
+
+    if delta > 0 then
+        print("You won $" .. delta)
+    elseif delta < 0 then
+        print("You lost $" .. math.abs(delta))
+    else
+        print("No money won or lost.")
+    end
+
+    print("New balance: $" .. balance)
+    return balance
 end
 
 return blackjack
