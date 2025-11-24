@@ -1,10 +1,12 @@
 -- Two-Player Poker (Five-Card Draw)
 -- Now includes detailed tiebreaker logic
 math.randomseed(os.time())
+local poker = {}
 
 local suits = {"Spade", "Heart", "Diamond", "Clover"}
 local ranks = {"2","3","4","5","6","7","8","9","10","J","Q","K","A"}
 
+local function main()
 -- Build deck
 local function build_deck()
     local deck = {}
@@ -194,3 +196,13 @@ print("Computer hand:")
 show_hand(cpu)
 
 print("\nResult: "..compare(player, cpu))
+
+
+end
+
+
+function poker.play()
+    main()
+end
+
+return poker

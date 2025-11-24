@@ -1,4 +1,5 @@
 math.randomseed(os.time())
+local roulette = {}
 
 -- COLORS
 local redSet = {
@@ -76,7 +77,7 @@ end
 
 local function main()
     print("Welcome to Console Roulette!")
-    local balance = 1000 -- starting money
+    local balance = 100
     print("You start with $" .. balance)
     printBetHelp()
 
@@ -170,6 +171,7 @@ local function main()
                 print("You lose. Lost stake: $" .. amt)
             end
 
+
             if balance <= 0 then
                 print("You're out of money. Game over.")
                 break
@@ -182,11 +184,11 @@ local function main()
     print("Thanks for playing!")
 end
 
-main()
 
-local roulette = {}
+
 
 function roulette.play()
-    -- just call your existing main loop
     main()
 end
+
+return roulette
