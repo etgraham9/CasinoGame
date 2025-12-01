@@ -33,7 +33,7 @@ local function hand_value(hand)
         local r = c.rank
         if r == "A" then
             aces = aces + 1
-            total = total + 1 -- count as 1 for now
+            total = total + 1 
         elseif r == "J" or r == "Q" or r == "K" then
             total = total + 10
         else
@@ -148,7 +148,7 @@ local function play_round(bank)
         end
     end
 
-    -- dealer turn: reveal and hit until 17 or more (soft 17 stands)
+
     print_hand("Dealer: ", dealer, false)
     while hand_value(dealer) < 17 do
         local c
@@ -176,7 +176,7 @@ local function play_round(bank)
     end
 end
 
--- manage betting and main loop
+
 local function main()
     print("Welcome to Lua Blackjack!")
     local balance = 100
